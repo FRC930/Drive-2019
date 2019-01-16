@@ -86,17 +86,21 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     counter++;
+    if(stick.getRawButton(4)){
+      speed = 0;
+      counter = 0;
+    }
     if(stick.getRawButton(3)){
-      if((counter % 3) == 0) {
+      if((counter % 10) == 0) {
         if(check == true && speed <0){
           check = false;
         }
         if(speed < 1 && check == false){
-          speed = speed + 0.01;
+          speed = speed + 0.001;
           motor.set(speed);
         }
         else if( check == true){
-          speed = speed - 0.01;
+          speed = speed - 0.001;
           motor.set(speed);
         }
         else if(speed >1){
@@ -117,7 +121,8 @@ public class Robot extends TimedRobot {
       }
     }
     else{
-      if(Math.abs(stick.getRawAxis(1))>0.05) motor.set(stick.getRawAxis(1));
+      if(stick.getRawButton(5)) motor.set(stick.getRawAxis(1));
+      else if(Math.abs(stick.getRawAxis(1))>0.05) motor.set(stick.getRawAxis(1));
       else motor.set(0);
       if(Math.abs(stick.getRawAxis(5))>0.05) motor2.set(ControlMode.PercentOutput, stick.getRawAxis(5));
       else motor2.set(ControlMode.PercentOutput, 0);
