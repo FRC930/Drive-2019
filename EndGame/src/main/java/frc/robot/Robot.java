@@ -14,6 +14,9 @@ public class Robot extends TimedRobot {
   private static final CANSparkMax left2 = new CANSparkMax(2, MotorType.kBrushless);
   private static final CANSparkMax left3 = new CANSparkMax(3, MotorType.kBrushless);
 
+  //Joystick deadband constant
+  private static final double JOYSTICK_DEADBAND = 0.1;
+
   //Joystick object
   Joystick stick = new Joystick(1);
 
@@ -41,10 +44,10 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     // Move end game lift up when joystick is pushed up.
-    if (Math.abs(stick.getRawAxis(5)) >= 0.1) {
+    if (Math.abs(stick.getRawAxis(5)) >= JOYSTICK_DEADBAND) { 
       left1.set(-stick.getRawAxis(5));
     } 
-    else {
+    else { //if the joystick isn't being touched, do nothing
       left1.set(0.0);
     }
   }
