@@ -1,30 +1,29 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class Robot extends TimedRobot {
 
-  //climber motor controllers
-  private static final CANSparkMax left1 = new CANSparkMax(1, MotorType.kBrushless);
-  private static final CANSparkMax left2 = new CANSparkMax(2, MotorType.kBrushless);
-  private static final CANSparkMax left3 = new CANSparkMax(3, MotorType.kBrushless);
+  // Lift motor controllers
+  private static final CANSparkMax endgameLift = new CANSparkMax(1, MotorType.kBrushless);
+  private static final CANSparkMax endgameLiftFollow1 = new CANSparkMax(2, MotorType.kBrushless);
+  private static final CANSparkMax endgameLiftFollow2 = new CANSparkMax(3, MotorType.kBrushless);
 
-  //Joystick deadband constant
-  private static final double JOYSTICK_DEADBAND = 0.1;
+  // Joystick deadband constant
+  private static final double ENDGAME_JOYSTICK_DEADBAND = 0.1;
 
-  //Joystick object
+  // Joystick object
   Joystick stick = new Joystick(1);
 
   @Override
   public void robotInit() {
+
      // Mirror primary motor controllers
-     left2.follow(left1);
-     left3.follow(left1);
+     endgameLiftFollow1.follow(endgameLift);
+     endgameLiftFollow2.follow(endgameLift);
   }
 
   @Override
@@ -43,12 +42,15 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    // Move end game lift up when joystick is pushed up.
-    if (Math.abs(stick.getRawAxis(5)) >= JOYSTICK_DEADBAND) { 
-      left1.set(-stick.getRawAxis(5));
+
+    // Move end game lift up when right joystick is pushed up
+    if (Math.abs(stick.getRawAxis(5)) >= ENDGAME_JOYSTICK_DEADBAND){  // getRawAxis(5) = right joystick
+      endgameLift.set(-stick.getRawAxis(5));  // The lift's speed will be set at the right joystick's input value
     } 
-    else { //if the joystick isn't being touched, do nothing
-      left1.set(0.0);
+
+    // If the joystick isn't being touched, don't move
+    else { 
+      endgameLift.set(0.0);
     }
   }
 
