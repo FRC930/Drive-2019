@@ -127,6 +127,7 @@ public class Robot extends TimedRobot {
         // Arcade drive
         
         runAt((stickY+stickX), -(stickY-stickX));
+      }
     /* end game
     if(stick.getRawButton(1) == true){
       EndGameLift.set(ControlMode.PercentOutput, 1);

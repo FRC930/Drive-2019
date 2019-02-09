@@ -11,14 +11,15 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
-
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 public class Robot extends TimedRobot {
 
   // Lift motor controllers
+  private static final VictorSPX  endgameLift = new VictorSPX(7);
+  private static final VictorSPX endgameLiftFollow1 = new VictorSPX(8);
+  private static final VictorSPX endgameLiftFollow2 = new VictorSPX(9);
   
-  private static final TalonSRX endgameLift = new TalonSRX(1);
-  private static final TalonSRX endgameLiftFollow1 = new TalonSRX(2);
-  private static final TalonSRX endgameLiftFollow2 = new TalonSRX(2);
+  //wheels
   private static final CANSparkMax WheelOne = new CANSparkMax(1, MotorType.kBrushless);
   private static final CANSparkMax WheelTwo = new CANSparkMax(2, MotorType.kBrushless);
   private static final CANSparkMax WheelThree = new CANSparkMax(3, MotorType.kBrushless);
@@ -26,12 +27,20 @@ public class Robot extends TimedRobot {
   private static final CANSparkMax WheelFive = new CANSparkMax(5, MotorType.kBrushless);
   private static final CANSparkMax WheelSix = new CANSparkMax(6, MotorType.kBrushless);
 
+  //sets up a pdp
   private static final PowerDistributionPanel Power = new PowerDistributionPanel(1);
+  
+  //Sets up Volts Variable for later
   private static double Volt = 0.0;
+  
+  //sets up consents
   private static final double VoltageLimit = 30.0;
   private static final double WheelSpeed = 0.1;
   private static final double LiftSpeed = 1.0;
+  
+  //sets up  a timer
   private static Timer TimeCount = new Timer();
+  //sets up a seconds variable
   public static double Seconds = 0.0;
   
   
@@ -79,34 +88,45 @@ public class Robot extends TimedRobot {
     then set motors to run Otherwise stop running
     */
     if(stick.getRawButton(1) == true && Volt <= VoltageLimit){
+      
       //start the timer
       TimeCount.start();
+      
       //set the  time to seconds
       Seconds = TimeCount.get();
+      
       //setting the  lift motor to LiftSpeed
       endgameLift.set(ControlMode.PercentOutput, LiftSpeed); 
+      
       //when the timer is  greater than or equal to 2 then activate wheels
       if(TimeCount.get() >= 2.0){
         WheelOne.set(WheelSpeed);
       }
     }
+    
     //when button two is pressed(B) and voltage is bigger than 20 
     else if(stick.getRawButton(2) == true && Volt <= VoltageLimit){
+      
       //start the  timer agian
       TimeCount.start();
+      
       //if the seconds is greater then seconds times 2
       if(TimeCount.get() < Seconds*2){
+        
         //sets lift speed to the oppisite of liftspeed
         endgameLift.set(ControlMode.PercentOutput, -LiftSpeed);
+        
         //sets wheels to 0
         WheelOne.set(0); 
       }
+      
       // when the time is greater then seconds *2 then stop and reset timer
       else{
         TimeCount.stop();
         TimeCount.reset();
       }
     }
+    
     //if the if and else if is not true then stop time and set motor to 0
     else{
       endgameLift.set(ControlMode.PercentOutput, 0);
