@@ -44,10 +44,10 @@ public class Robot extends TimedRobot {
     private static final TalonSRX endgameLiftFollow1 = new TalonSRX(2);
     private static final TalonSRX endgameLiftFollow2 = new TalonSRX(3);
     */
-
+    /* evelvator
     public static TalonSRX lift1 = new TalonSRX(1);
     public static TalonSRX lift2 = new TalonSRX(2);
-
+    */
    
   /**
    * This function is run when the robot is first started up and should be
@@ -65,7 +65,9 @@ public class Robot extends TimedRobot {
         endgameLiftFollow1.follow(EndGameLift);
         endgameLiftFollow2.follow(EndGameLift);
         */
+        /* elevator
         lift2.follow(lift1);
+        */
   }
 
   /**
@@ -110,7 +112,7 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     stickX = stick.getRawAxis(4);
-    stickY = stick.getRawAxis(5);
+    stickY = stick.getRawAxis(1);
     stickX = -Math.pow(stickX,3);
         stickY = Math.pow(stickY,3);
 
