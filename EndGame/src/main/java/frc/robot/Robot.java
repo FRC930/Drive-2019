@@ -19,10 +19,13 @@ public class Robot extends TimedRobot {
   private static final TalonSRX endgameLift = new TalonSRX(1);
   private static final TalonSRX endgameLiftFollow1 = new TalonSRX(2);
   private static final TalonSRX endgameLiftFollow2 = new TalonSRX(2);
-  private static final CANSparkMax WheelOne = new CANSparkMax(3, MotorType.kBrushless);
-  private static final CANSparkMax WheelTwo = new CANSparkMax(3, MotorType.kBrushless);
+  private static final CANSparkMax WheelOne = new CANSparkMax(1, MotorType.kBrushless);
+  private static final CANSparkMax WheelTwo = new CANSparkMax(2, MotorType.kBrushless);
   private static final CANSparkMax WheelThree = new CANSparkMax(3, MotorType.kBrushless);
-  private static final CANSparkMax WheelFour = new CANSparkMax(3, MotorType.kBrushless);
+  private static final CANSparkMax WheelFour = new CANSparkMax(4, MotorType.kBrushless);
+  private static final CANSparkMax WheelFive = new CANSparkMax(5, MotorType.kBrushless);
+  private static final CANSparkMax WheelSix = new CANSparkMax(6, MotorType.kBrushless);
+
   private static final PowerDistributionPanel Power = new PowerDistributionPanel(1);
   private static double Volt = 0.0;
   private static final double VoltageLimit = 30.0;
@@ -48,6 +51,8 @@ public class Robot extends TimedRobot {
      WheelTwo.follow(WheelOne);
      WheelThree.follow(WheelOne);
      WheelFour.follow(WheelOne);
+     WheelFive.follow(WheelOne);
+     WheelSix.follow(WheelOne);
      Volt = Power.getVoltage(); 
      TimeCount.reset();
      
