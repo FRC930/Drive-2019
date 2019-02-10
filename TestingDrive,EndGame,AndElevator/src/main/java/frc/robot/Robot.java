@@ -30,13 +30,13 @@ import edu.wpi.first.wpilibj.Joystick;
  * project.
  */
 public class Robot extends TimedRobot {
-    private static final CANSparkMax left1 = new CANSparkMax(1, MotorType.kBrushless);
+
+    /*private static final CANSparkMax left1 = new CANSparkMax(1, MotorType.kBrushless);
     private static final CANSparkMax left2 = new CANSparkMax(2, MotorType.kBrushless);
     private static final CANSparkMax left3 = new CANSparkMax(3, MotorType.kBrushless);
     private static final CANSparkMax right1 = new CANSparkMax(4, MotorType.kBrushless);
     private static final CANSparkMax right2 = new CANSparkMax(5, MotorType.kBrushless);
     private static final CANSparkMax right3 = new CANSparkMax(6, MotorType.kBrushless);
-    private static final Joystick stick = new Joystick(0);
     private static double stickX;
     private static double stickY;
     /* end game
@@ -44,10 +44,13 @@ public class Robot extends TimedRobot {
     private static final TalonSRX endgameLiftFollow1 = new TalonSRX(2);
     private static final TalonSRX endgameLiftFollow2 = new TalonSRX(3);
     */
-    /* evelvator
+    // evelvator
     public static TalonSRX lift1 = new TalonSRX(1);
     public static TalonSRX lift2 = new TalonSRX(2);
-    */
+    public static double stickElev;
+
+    private static final Joystick stick = new Joystick(0);
+    
    
   /**
    * This function is run when the robot is first started up and should be
@@ -56,18 +59,18 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     
-      left2.follow(left1);
+        /*left2.follow(left1);
         left3.follow(left1);
         
         right2.follow(right1);
         right3.follow(right2);
-        /*
+        
         endgameLiftFollow1.follow(EndGameLift);
         endgameLiftFollow2.follow(EndGameLift);
         */
-        /* elevator
+        // elevator
         lift2.follow(lift1);
-        */
+        
   }
 
   /**
@@ -111,33 +114,34 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    stickX = stick.getRawAxis(4);
+
+    /*stickX = stick.getRawAxis(4);
     stickY = stick.getRawAxis(1);
     stickX = -Math.pow(stickX,3);
         stickY = Math.pow(stickY,3);
 
-        // Joystick deadband
-        if(Math.abs(stickX) < 0.000124){
-            stickX = 0;
-        }
-        if(Math.abs(stickY) < 0.000124){
-            stickY = 0;
-        }
+    // Joystick deadband
+    if(Math.abs(stickX) < 0.000124){
+        stickX = 0;
+    }
+    if(Math.abs(stickY) < 0.000124){
+        stickY = 0;
+    }
 
-        // Arcade drive
+    // Arcade drive
         
-        runAt((stickY+stickX), -(stickY-stickX));
-      }
-    /* end game
+    runAt((stickY+stickX), -(stickY-stickX));
+    
+    // end game
     if(stick.getRawButton(1) == true){
       EndGameLift.set(ControlMode.PercentOutput, 1);
     }
-      else if(stick.getRawButton(2) == true){
-         EndGameLift.set(ControlMode.PercentOutput, -1);
-      }
-      else{
-         EndGameLift.set(ControlMode.PercentOutput, 0);
-      }
+    else if(stick.getRawButton(2) == true){
+       EndGameLift.set(ControlMode.PercentOutput, -1);
+    }
+    else{
+       EndGameLift.set(ControlMode.PercentOutput, 0);
+    }
     */
 
     /*elevator
@@ -153,6 +157,17 @@ public class Robot extends TimedRobot {
       lift1.set(ControlMode.PercentOutput, 0);
     }
     */
+
+    stickElev = Math.pow(stick.getRawAxis(1), 3);
+
+    if (Math.abs(stickElev) > 0.005) {
+      lift1.set(ControlMode.PercentOutput, -stickElev);
+    }
+    else {
+      lift1.set(ControlMode.PercentOutput, 0);
+    }
+
+  }
       
   
 
@@ -164,8 +179,8 @@ public class Robot extends TimedRobot {
   }
   public static void runAt(double leftSpeed, double rightSpeed) {
         
-        left1.set(leftSpeed);
-        right1.set(rightSpeed);
+        //left1.set(leftSpeed);
+        //right1.set(rightSpeed);
 
     }
 }
