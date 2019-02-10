@@ -47,6 +47,7 @@ public class Robot extends TimedRobot {
     // evelvator
     public static TalonSRX lift1 = new TalonSRX(1);
     public static TalonSRX lift2 = new TalonSRX(2);
+    public static TalonSRX lift3 = new TalonSRX(3);
     public static double stickElev;
 
     private static final Joystick stick = new Joystick(0);
@@ -70,7 +71,8 @@ public class Robot extends TimedRobot {
         */
         // elevator
         lift2.follow(lift1);
-        
+        lift3.follow(lift1);
+
   }
 
   /**
