@@ -20,6 +20,10 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 
 
 /**
@@ -30,7 +34,7 @@ import edu.wpi.first.wpilibj.Joystick;
  * project.
  */
 public class Robot extends TimedRobot {
-
+    // Sparks set up
     private static final CANSparkMax left1 = new CANSparkMax(1, MotorType.kBrushless);
     private static final CANSparkMax left2 = new CANSparkMax(2, MotorType.kBrushless);
     private static final CANSparkMax left3 = new CANSparkMax(3, MotorType.kBrushless);
@@ -49,17 +53,51 @@ public class Robot extends TimedRobot {
     public static TalonSRX lift2 = new TalonSRX(2);
     public static TalonSRX lift3 = new TalonSRX(3);
     public static double stickElev;
+
+    //sets up solenoid
     private static final Solenoid hatchPiston = new Solenoid(0);
+    private final static Solenoid armPiston = new Solenoid(3);
+    
+    //sets up driver and coDriver
     private static final Joystick stick = new Joystick(0);
     private static final Joystick stick2 = new Joystick(1);
-    private static boolean Out = false;
-    private final static Solenoid armPiston = new Solenoid(3);
-    private static boolean Out2 = false;
+    
+    //Elevator Booleans
     private static boolean RtPressed = false;
     private static boolean LtPressed = false;
     private static boolean Rcheck = false;
     private static boolean Lcheck = false;
+
+    //Vision traking Varabils
+    NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
+    private final int CAMERA1_WIDTH = 320;
+    private final int CAMERA1_HEIGHT = 240;
+    private final int CAMERA1_FPS = 30;
+    private final int CAMERA2_WIDTH = 160;
+    private final int CAMERA2_HEIGHT = 120;
+    private final int CAMERA2_FPS = 30;
+    NetworkTableEntry tx = limelightTable.getEntry("tx");
+    private final double DEFAULT_LIMELIGHT_VALUE = 0.1234;
+    private final double DEFAULT_HORIZONTAL_SPEED = -0.01;
+    private final double HORIZONTAL_ANGLE_THRESHOLD = 0.3;
+    private final double JOYSTICK_DEADBAND = 0.000124;
     
+    //sets up booleans for intake 
+    private static boolean RtBeakToggle = false;
+    private static boolean BeakToggle = false;
+    // typecast the NetworkTable data into a double
+    // getDouble() will return a default value if no value is found
+    double horizontalAngle = tx.getDouble(DEFAULT_LIMELIGHT_VALUE);
+  
+    // left and right speeds for the drivetrain 
+    double leftMovement = 0.0;
+    double rightMovement = 0.0;
+  
+    // speed of the robot in the forward and backward directions
+    double distanceSpeed = 0;
+  
+    // speed of the robot in the left and right directions
+    double horizontalSpeed = 0;
    
   /**
    * This function is run when the robot is first started up and should be
@@ -67,7 +105,15 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    
+        
+        limelightTable.getEntry("stream").setNumber(2);
+        //begin sending data to the shuffleboard
+        Shuffleboard.startRecording();
+
+        //initialize USB camera objects and begin sending their video streams to shuffleboard
+        
+        startCapture();
+        
         left2.follow(left1);
         left3.follow(left1);
         
@@ -76,6 +122,7 @@ public class Robot extends TimedRobot {
         
         endgameLiftFollow1.follow(EndGameLift);
         endgameLiftFollow2.follow(EndGameLift);
+        
         
         // elevator
         
@@ -147,35 +194,90 @@ public class Robot extends TimedRobot {
   //   Rcheck = false;
   //   Lcheck = !Lcheck;
   // }
-
-    if(stick2.getRawAxis(3) > 0.5)
-      hatchPiston.set(true);
-    if(stick2.getRawAxis(2) >0.5)
-      armPiston.set(true);   
-     if(stick2.getRawButton(1))
-      hatchPiston.set(false);
-    if(stick2.getRawButton(2))
+    
+  //sets up a button press on the driver controller for intake beak
+    if(stick.getRawAxis(3) > 0.5 && RtBeakToggle == false){
+      RtBeakToggle = true;
+    }
+    else if(stick.getRawAxis(3) < 0.5 && RtBeakToggle == true){
+      RtBeakToggle = false;
+      BeakToggle = !BeakToggle;
+    }
+    // On coDeriver Arm pistion is pushed out if lt is pushed
+    if(stick2.getRawAxis(2) > 0.5)
       armPiston.set(false); 
-    
-    
-    
-
-    stickX = stick.getRawAxis(4);
-    stickY = stick.getRawAxis(1);
-    stickX = -Math.pow(stickX,3);
-    stickY = Math.pow(stickY,3);
-
-    // Joystick deadband
-    if(Math.abs(stickX) < 0.005){
-        stickX = 0;
+    else{
+      armPiston.set(true);
     }
-    if(Math.abs(stickY) < 0.005){
-        stickY = 0;
+    hatchPiston.set(BeakToggle);
+    //visoin and drive
+
+    // reset the horizontal and distance speeds every time the code runs
+    // this will prevent previous leftover values from moving the motors
+    horizontalSpeed = 0;
+    distanceSpeed = 0;
+
+    // checks if the A button is currently being pressed, returns a boolean
+	  if(stick.getRawButton(1)) {
+
+      /* if the A button is currently pressed, turn on the limelight's LEDs,
+         and if the A button is not pressed, turn off the LEDs
+         getEntry("ledMode") is used to get the LedMode property from the NetworkTable
+         setNumber() is used to set the state of the LedMode property (the integer 1 sets the LEDs off, 3 sets the LEDs on)
+         
+         ?: is a terenary operator in Java, it is basically a one-line if-else statement
+         To use it, give it a boolean variable, the do ?. Then after that, you can use it as
+         an if-else statement. 
+         stick.getRawButton(A_BUTTON) ? 1 : 0
+         In this example, we use stick.getRawButton(A_BUTTON) as our boolean variable
+         if stick.getRawButton(A_BUTTON) is down (value is true), then it will return 1
+         if stick.getRawButton(A_BUTTON) is up (value is false), then it will return 0
+         With the 0 and 1 then, we use it to do some math. 
+         When the stick.getRawButton(A_BUTTON) is down (true), it returns 1
+         1 + (2 * 1) = 3. 3 is sent into .setNumber(), which turns the LEDs on
+      */
+      limelightTable.getEntry("ledMode").setNumber(1 + (2 * (stick.getRawButton(1) ? 1 : 0)));
+
+      // rotate the robot towards the target if horizontal angle is greater than the horizontal angle threshold on either side of the target
+      rotate(horizontalAngle);
     }
 
-    // Arcade drive
+    // Cubing values to create smoother function
+    stickX = -Math.pow(stick.getRawAxis(4), 3);
+    stickY = Math.pow(stick.getRawAxis(1), 3);
+
+    // manual drive controls
+    if(Math.abs(stickX) > JOYSTICK_DEADBAND) {
+      distanceSpeed = stickX;
+    }
+    if(Math.abs(stickY) > JOYSTICK_DEADBAND) {
+      horizontalSpeed = stickY;
+    }
+
+    // left and right speeds of the drivetrain
+    leftMovement = distanceSpeed + horizontalSpeed;
+    rightMovement = distanceSpeed - horizontalSpeed;
+
+    runAt(leftMovement, -rightMovement);
+
+    
+
+    // stickX = stick.getRawAxis(4);
+    // stickY = stick.getRawAxis(1);
+    // stickX = -Math.pow(stickX,3);
+    // stickY = Math.pow(stickY,3);
+
+    // // Joystick deadband
+    // if(Math.abs(stickX) < 0.005){
+    //     stickX = 0;
+    // }
+    // if(Math.abs(stickY) < 0.005){
+    //     stickY = 0;
+    // }
+
+    // // Arcade drive
         
-    runAt((stickY+stickX), -(stickY-stickX));
+    // runAt((stickY+stickX), -(stickY-stickX));
     
     // end game
     // if(stick.getRawButton(1) == true){
@@ -206,12 +308,15 @@ public class Robot extends TimedRobot {
 
     stickElev = Math.pow(stick2.getRawAxis(1), 3);
 
-    if (Math.abs(stickElev) > 0.0002) {
+    if (Math.abs(stickElev) > 0.000124) {
       lift1.set(ControlMode.PercentOutput, -stickElev);
     }
     else {
       lift1.set(ControlMode.PercentOutput, 0);
     }
+    //Vison
+     
+
   }
 
   
@@ -221,6 +326,7 @@ public class Robot extends TimedRobot {
   /**
    * This function is called periodically during test mode.
    */
+  
   @Override
   public void testPeriodic() {
   }
@@ -229,5 +335,25 @@ public class Robot extends TimedRobot {
         left1.set(leftSpeed);
         right1.set(rightSpeed);
 
+  }
+
+  private void rotate(double xAngle) {
+    if(Math.abs(xAngle) > HORIZONTAL_ANGLE_THRESHOLD) 
+      horizontalSpeed = DEFAULT_HORIZONTAL_SPEED * (-xAngle / 1.5);
+ }
+
+    private void startCapture() {
+      // creates a thread which runs concurrently with the program
+      new Thread(() -> {
+        // Instantiate the USB cameras and begin capturing their video streams
+        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture(0);
+        UsbCamera camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+  
+        // set the cameras' reolutions and FPS
+        camera.setResolution(CAMERA1_WIDTH, CAMERA1_HEIGHT);
+        camera.setFPS(CAMERA1_FPS);
+        camera2.setResolution(CAMERA2_WIDTH, CAMERA2_HEIGHT);
+        camera2.setFPS(CAMERA2_FPS);
+      }).start();
     }
 }
