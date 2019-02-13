@@ -70,8 +70,8 @@ public class Robot extends TimedRobot {
 
     //Vision traking Varabils
     NetworkTable limelightTable = NetworkTableInstance.getDefault().getTable("limelight");
-    private final int CAMERA1_WIDTH = 320;
-    private final int CAMERA1_HEIGHT = 240;
+    private final int CAMERA1_WIDTH = 160;
+    private final int CAMERA1_HEIGHT = 120;
     private final int CAMERA1_FPS = 30;
     private final int CAMERA2_WIDTH = 160;
     private final int CAMERA2_HEIGHT = 120;
@@ -83,7 +83,7 @@ public class Robot extends TimedRobot {
     private final double JOYSTICK_DEADBAND = 0.000124;
     
     //sets up booleans for intake 
-    private static boolean RtBeakToggle = false;
+    private static boolean LtBeakToggle = false;
     private static boolean BeakToggle = false;
     // typecast the NetworkTable data into a double
     // getDouble() will return a default value if no value is found
@@ -196,11 +196,11 @@ public class Robot extends TimedRobot {
   // }
     
   //sets up a button press on the driver controller for intake beak
-    if(stick.getRawAxis(3) > 0.5 && RtBeakToggle == false){
-      RtBeakToggle = true;
+    if(stick.getRawAxis(2) > 0.5 && LtBeakToggle == false){
+      LtBeakToggle = true;
     }
-    else if(stick.getRawAxis(3) < 0.5 && RtBeakToggle == true){
-      RtBeakToggle = false;
+    else if(stick.getRawAxis(2) < 0.5 && LtBeakToggle == true){
+      LtBeakToggle = false;
       BeakToggle = !BeakToggle;
     }
     // On coDeriver Arm pistion is pushed out if lt is pushed
@@ -258,7 +258,7 @@ public class Robot extends TimedRobot {
     leftMovement = distanceSpeed + horizontalSpeed;
     rightMovement = distanceSpeed - horizontalSpeed;
 
-    runAt(leftMovement, -rightMovement);
+    runAt(leftMovement, rightMovement);
 
     
 
