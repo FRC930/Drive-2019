@@ -12,6 +12,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 
 import java.sql.Time;
 import edu.wpi.first.wpilibj.*;
@@ -44,9 +46,9 @@ public class Robot extends TimedRobot {
     private static double stickX;
     private static double stickY;
     // end game
-    private static final TalonSRX EndGameLift = new TalonSRX(1);
-    private static final TalonSRX endgameLiftFollow1 = new TalonSRX(2);
-    private static final TalonSRX endgameLiftFollow2 = new TalonSRX(3);
+    //private static final TalonSRX EndGameLift = new TalonSRX(1);
+    //private static final TalonSRX endgameLiftFollow1 = new TalonSRX(2);
+    //private static final TalonSRX endgameLiftFollow2 = new TalonSRX(3);
     
     // evelvator
     public static TalonSRX lift1 = new TalonSRX(1);
@@ -81,7 +83,21 @@ public class Robot extends TimedRobot {
     private final double DEFAULT_HORIZONTAL_SPEED = -0.01;
     private final double HORIZONTAL_ANGLE_THRESHOLD = 0.3;
     private final double JOYSTICK_DEADBAND = 0.000124;
-    
+
+    //Elevator motion magic
+    //creates variables for the FPID and Velocity and Acceleration
+    private static double F = 1.4614;
+    private static double P = 18.0;
+    private static double I = 0.070;
+    private static double D = 51.0;
+    private static int Velocity = 650;
+    private static int Acceleration = 1200;
+    private static int pidSlotNumber = 0;
+    private static int kTimeoutMs = 10;
+    public static double TargetPosition = 0.0;
+    public static boolean StartMotionMagicToggle = false;
+    public static boolean MotionMagicToggle = false;
+
     //sets up booleans for intake 
     private static boolean LtBeakToggle = false;
     private static boolean BeakToggle = false;
@@ -113,19 +129,52 @@ public class Robot extends TimedRobot {
         //initialize USB camera objects and begin sending their video streams to shuffleboard
         
         startCapture();
-        
+        lift2.follow(lift1);
+        lift3.follow(lift1);
+
         left2.follow(left1);
         left3.follow(left1);
         
         right2.follow(right1);
         right3.follow(right2);
         
-        endgameLiftFollow1.follow(EndGameLift);
-        endgameLiftFollow2.follow(EndGameLift);
+        //endgameLiftFollow1.follow(EndGameLift);
+        //endgameLiftFollow2.follow(EndGameLift);
         
         
-        // elevator
-        
+        // elevator motion magic
+        lift1.setSelectedSensorPosition(0, 0, kTimeoutMs);
+        lift1.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, kTimeoutMs);
+    
+    //sets limit of where it should go
+    lift1.configForwardSoftLimitThreshold(-5500, kTimeoutMs);
+    lift1.configReverseSoftLimitThreshold(-50, kTimeoutMs);
+    
+    //sets up the  fpid for pid functions
+    lift1.selectProfileSlot(pidSlotNumber, 0);
+    lift1.config_kF(pidSlotNumber, F, kTimeoutMs);
+		lift1.config_kP(pidSlotNumber, P, kTimeoutMs);
+    lift1.config_kI(pidSlotNumber, I, kTimeoutMs);
+    lift1.config_kD(pidSlotNumber, D, kTimeoutMs);
+    
+    //CruiseVelocity is the no exceleration part of trapizoid / top Acceleration is getting to top
+    lift1.configMotionCruiseVelocity(Velocity, kTimeoutMs);
+    lift1.configMotionAcceleration(Acceleration, kTimeoutMs);
+    
+    lift1.setSensorPhase(true);
+
+    //Nominal out put is lowest limit and peak is highest    
+    lift1.configNominalOutputReverse(0, kTimeoutMs);
+    lift1.configNominalOutputForward(0, kTimeoutMs);
+		lift1.configPeakOutputForward(1, kTimeoutMs);
+    lift1.configPeakOutputReverse(-1, kTimeoutMs);
+    
+    //sets the sensor to the bootom/0
+    //lift1.setSelectedSensorPosition(0, 0, kTimeoutMs);
+    
+    lift1.setStatusFramePeriod(StatusFrameEnhanced.Status_13_Base_PIDF0, 10, kTimeoutMs);
+		lift1.setStatusFramePeriod(StatusFrameEnhanced.Status_10_MotionMagic, 10, kTimeoutMs);
+    
         // hatchPiston.set(Out);
         // armPiston.set(Out2);
         
@@ -306,17 +355,51 @@ public class Robot extends TimedRobot {
     }
     */
 
+    
+    //Elevator motion magic
     stickElev = Math.pow(stick2.getRawAxis(1), 3);
-
-    if (Math.abs(stickElev) > 0.000124) {
+    double leftYstick = stick2.getRawAxis(1);
+    
+    if(stick2.getRawButton(8) && StartMotionMagicToggle == false){
+      StartMotionMagicToggle = true;
+    }
+    else if(stick2.getRawButton(8) && StartMotionMagicToggle == true){
+     StartMotionMagicToggle = false;
+     MotionMagicToggle = !MotionMagicToggle;
+    }
+    
+    if(MotionMagicToggle){
+      //if button1(A) is pressed then go to the position 500 using motion magic
+      if(stick2.getRawButton(1)){
+        TargetPosition = 200;
+        lift1.set(ControlMode.MotionMagic, TargetPosition);
+      }
+      //if button4(Y) is pressed then go to the highest spot at 4500 using motion magic
+      else if(stick2.getRawButton(4)){
+        TargetPosition = 4800;
+        lift1.set(ControlMode.MotionMagic, TargetPosition);
+      }
+      //If button2(B) is pressed then go to the middle spot using motion magic
+      else if(stick2.getRawButton(2)){
+        TargetPosition = 2800;
+        lift1.set(ControlMode.MotionMagic, TargetPosition);
+      }
+      else if(Math.abs(leftYstick) > 0.05){
+        TargetPosition = TargetPosition + leftYstick * -50;
+        lift1.set(ControlMode.MotionMagic, TargetPosition);
+      }
+  }
+    else if (Math.abs(stickElev) > 0.000124) {
       lift1.set(ControlMode.PercentOutput, -stickElev);
     }
     else {
       lift1.set(ControlMode.PercentOutput, 0);
     }
-    //Vison
-     
-
+    SmartDashboard.putNumber("EncoderPosition", lift1.getSelectedSensorPosition());
+    SmartDashboard.putNumber("CalcError", lift1.getSelectedSensorPosition() - TargetPosition);
+    SmartDashboard.putNumber("Joystick", -leftYstick);
+    SmartDashboard.putNumber("TargetPosition", TargetPosition);
+    SmartDashboard.putNumber("TalonError", lift1.getClosedLoopError());
   }
 
   
