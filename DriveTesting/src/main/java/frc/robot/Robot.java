@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.//Wire class
+import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -33,6 +35,9 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+ 
+    byte[] WriteData = new byte[6];
+    Wire.transaction(WriteData, WriteData.length, null, 0);
   }
 
   /**
