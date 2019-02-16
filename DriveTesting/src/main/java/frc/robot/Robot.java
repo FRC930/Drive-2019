@@ -7,7 +7,8 @@
 
 package frc.robot;
 
-import edu.wpi.first.//Wire class
+import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -25,7 +26,9 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-
+  private final I2C Wire;
+  private static Button ButtonX;
+  private static Button ButtonA;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -35,10 +38,11 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
- 
-    byte[] WriteData = new byte[6];
-    Wire.transaction(WriteData, WriteData.length, null, 0);
+    ButtonA = new Button(1);
+    ButtonX = new Button(3);
   }
+
+
 
   /**
    * This function is called every robot packet, no matter the mode. Use
@@ -91,7 +95,11 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
+
+    byte[] WriteData = new byte[6];
+    Wire.transaction(WriteData, WriteData.length, null, 0);
   }
+
 
   /**
    * This function is called periodically during test mode.
