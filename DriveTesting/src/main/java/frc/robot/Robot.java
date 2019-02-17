@@ -10,6 +10,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.I2C.Port;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -26,7 +28,8 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-  private final I2C Wire;
+
+  private static final I2C Responce = new I2C(I2C.Port.kOnboard, 84);
   private static Joystick Driver;
   /**
    * This function is run when the robot is first started up and should be
@@ -103,7 +106,7 @@ public class Robot extends TimedRobot {
     else{
       WriteData = new byte[0];
     }
-    Wire.transaction(WriteData, WriteData.length, null, 0);
+    Responce.transaction(WriteData, WriteData.length, null, 0);
   }
 
 
