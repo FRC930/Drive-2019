@@ -27,8 +27,7 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
   private final I2C Wire;
-  private static Button ButtonX;
-  private static Button ButtonA;
+  private static Joystick Driver;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -38,8 +37,7 @@ public class Robot extends TimedRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
-    ButtonA = new Button(1);
-    ButtonX = new Button(3);
+    Driver = new Joystick(1);
   }
 
 
@@ -95,8 +93,16 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-
-    byte[] WriteData = new byte[6];
+    byte[] WriteData = new byte[0];
+    if(Driver.getRawButton(1)){
+      WriteData = new byte[1];
+    }
+    else if(Driver.getRawButton(2)){
+      WriteData = new byte[2];
+    }
+    else{
+      WriteData = new byte[0];
+    }
     Wire.transaction(WriteData, WriteData.length, null, 0);
   }
 
