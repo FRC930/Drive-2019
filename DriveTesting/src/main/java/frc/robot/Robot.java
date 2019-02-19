@@ -96,17 +96,17 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    byte[] WriteData = new byte[0];
+    int WriteData;
     if(Driver.getRawButton(1)){
-      WriteData = new byte[1];
+      WriteData = 1;
     }
     else if(Driver.getRawButton(2)){
-      WriteData = new byte[2];
+      WriteData = 2;
     }
     else{
-      WriteData = new byte[0];
+      WriteData = 0;
     }
-    Responce.transaction(WriteData, WriteData.length, null, 0);
+    Responce.write(24, WriteData);
   }
 
 
