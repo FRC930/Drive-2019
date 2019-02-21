@@ -29,7 +29,7 @@ public class Robot extends TimedRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  private static final I2C Responce = new I2C(I2C.Port.kOnboard, 84);
+  private static final I2C Responce = new I2C(I2C.Port.kOnboard, 24);
   private static Joystick Driver;
   /**
    * This function is run when the robot is first started up and should be
@@ -96,7 +96,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    int WriteData;
+    /*
     if(Driver.getRawButton(1)){
       WriteData = 1;
     }
@@ -106,8 +106,12 @@ public class Robot extends TimedRobot {
     else{
       WriteData = 0;
     }
-    Responce.write(24, WriteData);
-  }
+    */
+    if(Responce.addressOnly()){
+      Responce.write(24, 2);
+    }
+
+   }
 
 
   /**
