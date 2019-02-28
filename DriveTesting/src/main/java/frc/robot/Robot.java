@@ -32,6 +32,10 @@ public class Robot extends TimedRobot {
 private static Timer Time;
   private static final I2C Responce = new I2C(I2C.Port.kOnboard, 2);
   private static Joystick Driver;
+  private boolean belt = false;
+  private boolean toggle = true;
+  private int mode = 3;
+  private int pick = 0;
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -98,12 +102,30 @@ private static Timer Time;
    */
   @Override
   public void teleopPeriodic() {
-       if(Driver.getRawButton(1)){
-      Responce.write(2, 1);
+    if (toggle && Driver.getRawButton(2)) {  // Only execute once per Button push
+      toggle = false;  // Prevents this section of code from being called again until the Button is released and re-pressed
+      if (belt) {  // Decide which way to set the motor this time through (or use this as a motor value instead)
+        belt= false;
+        mode = 3;
+      } 
+      else{
+        belt= true;
+        mode = 4;
+      }
+      }
+       if(Driver.getRawButton(2) == false) { 
+        toggle = true; // Button has been released, so this allows a re-press to activate the code above.
+      }
+
+       if(Driver.getRawButton(1) && belt){
+      pick = 1;
        }
        else{
-        Responce.write(2, 0);  
+        pick = 0;
        }
+       Responce.write(2, 45);
+      Responce.write(2, mode);
+      Responce.write(2, pick);
 }
 
   /**
