@@ -51,18 +51,18 @@ public class Robot extends TimedRobot {
     // private static double stickX;
     // private static double stickY;
     // end game
-    private static final TalonSRX EndGameLift = new TalonSRX(5);
+    /*private static final TalonSRX EndGameLift = new TalonSRX(5);
     private static final VictorSPX endgameLiftFollow1 = new VictorSPX(6);
-    private static final VictorSPX endgameLiftFollow2 = new VictorSPX(7);
+    private static final VictorSPX endgameLiftFollow2 = new VictorSPX(7);*/
     
     // evelvator
     public static TalonSRX lift1 = new TalonSRX(1);
-    public static VictorSPX lift2 = new VictorSPX(2);
-    public static VictorSPX lift3 = new VictorSPX(3);
+    public static TalonSRX lift2 = new TalonSRX(2);
+    public static TalonSRX lift3 = new TalonSRX(3);
     public static double stickElev;
 
     //sets up solenoid
-     private static final Solenoid hatchPiston = new Solenoid(7);//Solenoid(0);
+     //private static final Solenoid hatchPiston = new Solenoid(7);//Solenoid(0);
     // private final static Solenoid armPiston = new Solenoid(3);
     
     // //sets up driver and coDriver
@@ -91,12 +91,12 @@ public class Robot extends TimedRobot {
 
     //Elevator motion magic
     //creates variables for the FPID and Velocity and Acceleration
-    private static double F = 1.705;//1.4614;
-    private static double P = 18;//18.0;
-    private static double I = 0;//0.070;
-    private static double D = 24;//51.0;
+    private static double F = 1.705;//Pract: 1.4614;
+    private static double P = 6;//Pract&Comp: 18.0;
+    private static double I = 0;//Pract: 0.07;//Comp: 0;
+    private static double D = 0;//Pract: 51;//Comp: 24;
     private static int Velocity = 600;//650;
-    private static int Acceleration = 300;//600//1200;
+    private static int Acceleration = 500;//Comp:300;//Pract:600//Pract:1200;
     private static int pidSlotNumber = 0;
     private static int kTimeoutMs = 10;
     public static double TargetPosition = 0.0;
@@ -143,8 +143,8 @@ public class Robot extends TimedRobot {
         // right2.follow(right1);
         // right3.follow(right2);
         
-        endgameLiftFollow1.follow(EndGameLift);
-        endgameLiftFollow2.follow(EndGameLift);
+        //endgameLiftFollow1.follow(EndGameLift);
+        //endgameLiftFollow2.follow(EndGameLift);
         
         
         // elevator motion magic
@@ -335,14 +335,14 @@ public class Robot extends TimedRobot {
     
   if(stick.getRawButton(1)){
       if(Math.abs(stick.getRawAxis(1))>0.05){
-        EndGameLift.set(ControlMode.PercentOutput, -stick.getRawAxis(1));
+        //EndGameLift.set(ControlMode.PercentOutput, -stick.getRawAxis(1));
       }
       else{
-        EndGameLift.set(ControlMode.PercentOutput,0);
+        //EndGameLift.set(ControlMode.PercentOutput,0);
       }
   }
   else{
-    EndGameLift.set(ControlMode.PercentOutput,0);
+    //EndGameLift.set(ControlMode.PercentOutput,0);
   }
 
     //elevator
@@ -360,7 +360,7 @@ public class Robot extends TimedRobot {
     }
     */
 
-    hatchPiston.set(true);
+    //hatchPiston.set(true);
     //Elevator motion magic
     stickElev = Math.pow(stick2.getRawAxis(1), 3);
     double leftYstick = stick2.getRawAxis(1);
@@ -376,17 +376,17 @@ public class Robot extends TimedRobot {
     if(MotionMagicToggle  ){
       //if button1(A) is pressed then go to the position 500 using motion magic
       if(stick2.getRawButton(1)){
-        TargetPosition = -1000;//200;
+        TargetPosition = 500;//1000;//200;
         lift1.set(ControlMode.MotionMagic, TargetPosition);
       }
       //if button4(Y) is pressed then go to the highest spot at 4500 using motion magic
       else if(stick2.getRawButton(4)){
-        TargetPosition = -4800;
+        TargetPosition = 4800;
         lift1.set(ControlMode.MotionMagic, TargetPosition);
       }
       //If button2(B) is pressed then go to the middle spot using motion magic
       else if(stick2.getRawButton(2)){
-        TargetPosition = -2800;
+        TargetPosition = 2800;
         lift1.set(ControlMode.MotionMagic, TargetPosition);
       }
       // else if(Math.abs(leftYstick) > 0.05){
@@ -394,14 +394,14 @@ public class Robot extends TimedRobot {
       //   lift1.set(ControlMode.MotionMagic, TargetPosition);
       // }
       else if (Math.abs(stickElev) > 0.000124) {
-        lift1.set(ControlMode.PercentOutput, stickElev);
+        lift1.set(ControlMode.PercentOutput, -stickElev);
       }
       else {
         lift1.set(ControlMode.PercentOutput, 0);
       }
   }
     else if (Math.abs(stickElev) > 0.000124) {
-      lift1.set(ControlMode.PercentOutput, stickElev);
+      lift1.set(ControlMode.PercentOutput, -stickElev);
     }
     else {
       lift1.set(ControlMode.PercentOutput, 0);
