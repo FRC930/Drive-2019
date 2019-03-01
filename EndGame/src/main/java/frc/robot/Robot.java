@@ -1,9 +1,14 @@
 package frc.robot;
-/* the objective
+/* The Objective
 
-  this code is so the end game can be used
-  the endgame as a lift under the drive train to lift the robot up
-  */
+  This code is to control the end game of the deep space compition. 
+  The endgame has a lift under the drive train that lifts the robot to top platform.
+  This code does this by controling three victors that contorl the end game lift motors,
+  and use a single encoder that tracks how many motor rotation have passed while robot is lifted.
+  This is tracked through the number of ticks recorded by the encoder, and we use the wheels to help lift
+  the robot to the top platform.
+ 
+*/
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.*;
