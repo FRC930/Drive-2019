@@ -1,5 +1,9 @@
 package frc.robot;
+/* the objective
 
+  this code is so the end game can be used
+  the endgame as a lift under the drive train to lift the robot up
+  */
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.*;
@@ -33,15 +37,21 @@ public class Robot extends TimedRobot {
   private static final double VoltageLimit = 30.0;
   private static final double WheelSpeed = 0.1;
   private static final double LiftSpeed = 1.0;
+  private static final double joystickDeadband = 0.00124;
+  private static final double maxTicks = 9000;
+  private static final double minTicks = 0.0;
+  
   
   //sets up  a timer
   private static Timer TimeCount = new Timer();
   //sets up a seconds variable
   public static double Seconds = 0.0;
   
+  //sets up a varable for the encoder ticks
   public static double ticks = 0.0;
-  public static double betterStick;
-
+  
+  //sets up a cubed stick value
+  public static double leftYStickCubed;
 
   // Joystick deadband constant
   //private static final double ENDGAME_JOYSTICK_DEADBAND = 0.1;
@@ -82,27 +92,49 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    betterStick = Math.pow(stick.getRawAxis(1), 3);
+    // Cubes the left y joystick
+    // -- for smoother motion 
+    leftYStickCubed = Math.pow(stick.getRawAxis(1), 3);
+
+    // checks to see if RB is pressed
     if(stick.getRawButton(6)){
-      if(betterStick > -0.00124 && endgameLift.getSelectedSensorPosition(0) < 9000){
+
+      // if the joystick cubed is above the dead band and ticks are not too high
+      if(leftYStickCubed < -joystickDeadband && ticks < maxTicks){
+        
+        // sets ticks to the encoder position
         ticks = endgameLift.getSelectedSensorPosition(0);
-        endgameLift.set(ControlMode.PercentOutput, 1);
-        wheelOne.set(1.0);
+        
+        // sets the endgame motor to the value of the stick
+        endgameLift.set(ControlMode.PercentOutput, -leftYStickCubed);
+
+        // sets the wheels to rotate 20% positive
+        wheelOne.set(0.2);
       }
-      else if(betterStick > 0.00124 && ticks >= 0){
-        endgameLift.set(ControlMode.PercentOutput, -1);
+      
+      // if the cubed joystick value is above dead band and ticks is not too low
+      else if(leftYStickCubed > joystickDeadband && ticks >= minTicks){
+
+        // set the endgame motro to the left stick
+        endgameLift.set(ControlMode.PercentOutput, -leftYStickCubed);
+        
+        // sets ticks to the encoder position
         ticks = endgameLift.getSelectedSensorPosition(0);
-        wheelOne.set(-1.0);
+
+        // sets wheels to rotate negtive 20%
+        wheelOne.set(-0.2);
       }
+
+      // if driver doesn't push a direction on stick then do this
       else{
+
+        // set the motor to do nothing
         endgameLift.set(ControlMode.PercentOutput, 0);
+        
+        // sets wheels to do nothing
         wheelOne.set(0.0);
       }
     }
-   
-
-
-
 
     // /*
     // When the A button is pressed (which is 1) and voltage is less then or equal to 30 
