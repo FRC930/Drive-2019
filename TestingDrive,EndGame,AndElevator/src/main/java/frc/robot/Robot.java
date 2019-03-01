@@ -363,7 +363,7 @@ public class Robot extends TimedRobot {
     if(stick2.getRawButton(8) && StartMotionMagicToggle == false){
       StartMotionMagicToggle = true;
     }
-    else if(stick2.getRawButton(8) && StartMotionMagicToggle == true){
+    else if(!stick2.getRawButton(8) && StartMotionMagicToggle == true){
      StartMotionMagicToggle = false;
      MotionMagicToggle = !MotionMagicToggle;
     }
@@ -371,17 +371,17 @@ public class Robot extends TimedRobot {
     if(MotionMagicToggle){
       //if button1(A) is pressed then go to the position 500 using motion magic
       if(stick2.getRawButton(1)){
-        TargetPosition = 200;
+        TargetPosition = 215;
         lift1.set(ControlMode.MotionMagic, TargetPosition);
       }
       //if button4(Y) is pressed then go to the highest spot at 4500 using motion magic
       else if(stick2.getRawButton(4)){
-        TargetPosition = 4800;
+        TargetPosition = 4410;
         lift1.set(ControlMode.MotionMagic, TargetPosition);
       }
       //If button2(B) is pressed then go to the middle spot using motion magic
       else if(stick2.getRawButton(2)){
-        TargetPosition = 2800;
+        TargetPosition = 2350;
         lift1.set(ControlMode.MotionMagic, TargetPosition);
       }
       else if(Math.abs(leftYstick) > 0.05){
