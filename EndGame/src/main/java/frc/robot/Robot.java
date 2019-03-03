@@ -16,13 +16,15 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 public class Robot extends TimedRobot {
 
   // Lift motor controllers
-  private static final VictorSPX  endgameLift = new VictorSPX(7);
-  private static final VictorSPX endgameLiftFollow1 = new VictorSPX(8);
-  private static final VictorSPX endgameLiftFollow2 = new VictorSPX(9);
+  private static final TalonSRX endgameLift = new TalonSRX(5);
+  private static final VictorSPX endgameLiftFollow1 = new VictorSPX(6);
+  private static final VictorSPX endgameLiftFollow2 = new VictorSPX(7);
   
   //wheels
   private static final CANSparkMax wheelOne = new CANSparkMax(1, MotorType.kBrushless);
@@ -33,7 +35,7 @@ public class Robot extends TimedRobot {
   private static final CANSparkMax wheelSix = new CANSparkMax(6, MotorType.kBrushless);
 
   //sets up a pdp
-  private static final PowerDistributionPanel Power = new PowerDistributionPanel(1);
+  //private static final PowerDistributionPanel Power = new PowerDistributionPanel(1);
   
   //Sets up Volts Variable for later
   private static double Volt = 0.0;
@@ -62,7 +64,7 @@ public class Robot extends TimedRobot {
   //private static final double ENDGAME_JOYSTICK_DEADBAND = 0.1;
 
   // Joystick object
-  Joystick stick = new Joystick(1);
+  Joystick stick = new Joystick(0);
 
   @Override
   public void robotInit() {
@@ -76,7 +78,7 @@ public class Robot extends TimedRobot {
      wheelFour.follow(wheelOne);
      wheelFive.follow(wheelOne);
      wheelSix.follow(wheelOne);
-     Volt = Power.getVoltage(); 
+     //Volt = Power.getVoltage(); 
      TimeCount.reset();
      
   }
@@ -102,7 +104,7 @@ public class Robot extends TimedRobot {
     leftYStickCubed = Math.pow(stick.getRawAxis(1), 3);
 
     // checks to see if RB is pressed
-    if(stick.getRawButton(6)){
+    /*if(stick.getRawButton(6)){
 
       // if the joystick cubed is above the dead band and ticks are not too high
       if(leftYStickCubed < -joystickDeadband && ticks < maxTicks){
@@ -139,8 +141,19 @@ public class Robot extends TimedRobot {
         // sets wheels to do nothing
         wheelOne.set(0.0);
       }
+    }*/
+    if(leftYStickCubed < -0.00124){
+      endgameLift.set(ControlMode.PercentOutput, -leftYStickCubed);
+      //wheelOne.set(0.2);
     }
-
+    else if(leftYStickCubed > 0.00124){
+      endgameLift.set(ControlMode.PercentOutput, -leftYStickCubed);
+      //wheelOne.set(-0.2);
+    }
+    else{
+      endgameLift.set(ControlMode.PercentOutput, 0);
+      //wheelOne.set(0.0);
+    }
     // /*
     // When the A button is pressed (which is 1) and voltage is less then or equal to 30 
     // then set motors to run Otherwise stop running
@@ -195,15 +208,14 @@ public class Robot extends TimedRobot {
     /*
     if (Math.abs(stick.getRawAxis(5)) >= ENDGAME_JOYSTICK_DEADBAND){  // getRawAxis(5) = right joystick
       endgameLift.set(-stick.getRawAxis(5));  // The lift's speed will be set at the right joystick's input value
-    */
-    } 
+    }*/
 
     // If the joystick isn't being touched, don't move
     /*
     else { 
       endgameLift.set(0.0);
     }*/
-  
+  }
 
   @Override
   public void testPeriodic() {
