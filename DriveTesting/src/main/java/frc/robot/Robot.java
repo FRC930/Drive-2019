@@ -29,13 +29,14 @@ public class Robot extends TimedRobot {
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
-private static Timer Time;
+  private static Timer Time;
   private static final I2C Responce = new I2C(I2C.Port.kOnboard, 2);
   private static Joystick Driver;
-  private boolean belt = false;
-  private boolean toggle = true;
-  private int mode = 3;
+  private static Joystick CoDriver;
   private int pick = 0;
+  private boolean toggle = true;
+  private boolean mode = false;
+  
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -46,9 +47,31 @@ private static Timer Time;
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
     Driver = new Joystick(1);
+    CoDriver = new Joystick(2);
     Time = new Timer();
+  
   }
+  static private enum LEDStatus{
+    PATTERN_OFF(0),
+    PATTERN_SEND(1),
+    ALT_BLUE_YELLOW(3),
+    BLUE(4),
+    GREEN(5),
+    YELLOW(6),
+    RED(7),
+    SCROLLING_RAINBOW(8),
+    FWD_SCROLL_BLUE_YELLOW(9),
+    RVS_SCROLL_BLUE_YELLOW(10);
 
+    //this holds arduino state
+    private int LEDStatus_Value;
+    private LEDStatus(int value){
+     this.LEDStatus_Value = value;
+    }
+    public int getLEDStatus(){
+      return this.LEDStatus_Value;
+    }
+  }
 
 
   /**
@@ -102,29 +125,53 @@ private static Timer Time;
    */
   @Override
   public void teleopPeriodic() {
+    pick = LEDStatus.PATTERN_OFF.getLEDStatus();
     if (toggle && Driver.getRawButton(2)) {  // Only execute once per Button push
       toggle = false;  // Prevents this section of code from being called again until the Button is released and re-pressed
-      if (belt) {  // Decide which way to set the motor this time through (or use this as a motor value instead)
-        belt= false;
-        mode = 3;
+      if (mode) {  // Decide which way to set the motor this time through (or use this as a motor value instead)
+        mode = false;
       } 
       else{
-        belt= true;
-        mode = 4;
+        mode = true;
       }
       }
        if(Driver.getRawButton(2) == false) { 
         toggle = true; // Button has been released, so this allows a re-press to activate the code above.
       }
-
-       if(Driver.getRawButton(1) && belt){
-      pick = 1;
+      if(mode){
+       if(Driver.getRawButton(1)){
+      pick = LEDStatus.PATTERN_SEND.getLEDStatus();
        }
        else{
-        pick = 0;
+         pick = LEDStatus.PATTERN_OFF.getLEDStatus();
        }
-       Responce.write(2, 45);
-      Responce.write(2, mode);
+      }
+      if(mode == false){
+      if(Driver.getRawAxis(1)<-0.25 && Driver.getRawAxis(5)<-0.25){
+      pick = LEDStatus.FWD_SCROLL_BLUE_YELLOW.getLEDStatus();
+      }
+      if(Driver.getRawAxis(1)>0.25 && Driver.getRawAxis(5)>0.25){
+      pick = LEDStatus.RVS_SCROLL_BLUE_YELLOW.getLEDStatus();
+      }
+      if(){
+      pick = LEDStatus..getLEDStatus();
+      }
+      if(){
+      pick = LEDStatus..getLEDStatus();
+      }
+      if(){
+      pick = LEDStatus..getLEDStatus();
+      }
+      if(){
+      pick = LEDStatus..getLEDStatus();
+      }
+      if(){
+      pick = LEDStatus..getLEDStatus();
+      }
+      if(){
+      pick = LEDStatus..getLEDStatus();
+      }
+      }
       Responce.write(2, pick);
 }
 

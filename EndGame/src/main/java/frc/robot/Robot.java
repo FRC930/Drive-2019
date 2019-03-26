@@ -19,6 +19,8 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.revrobotics.*;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
+
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 public class Robot extends TimedRobot {
 
@@ -28,6 +30,7 @@ public class Robot extends TimedRobot {
   // private static final VictorSPX endgameLiftFollow2 = new VictorSPX(9);
   private static final Solenoid backpiston = new Solenoid(0);
   private static final Encoder endgamecounter = new Encoder(0, 1);
+  private static final Compressor compressor = new Compressor();
 
   private static final CANSparkMax rightWheelOne = new CANSparkMax(1, MotorType.kBrushless);
   private static final CANSparkMax rightWheelTwo = new CANSparkMax(2, MotorType.kBrushless);
@@ -42,6 +45,7 @@ public class Robot extends TimedRobot {
 
    private static final Timer endgametimer = new Timer();
    private static final Timer backuptimer = new Timer();
+   private static final Timer pistonTimer = new Timer();
    
   // private static final CANSparkMax wheelFour = new CANSparkMax(4, MotorType.kBrushless);
   // private static final CANSparkMax wheelFive = new CANSparkMax(5, MotorType.kBrushless);
@@ -98,6 +102,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     endgametimer.reset();
     backuptimer.reset();
+
     EndgameState = EndgameStates.BACK_PISTION_DOWN;
      // Mirror primary motor controllers
      
@@ -114,6 +119,11 @@ public class Robot extends TimedRobot {
       rightWheelThree.follow(rightWheelOne);
       leftWheelTwo.follow(leftWheelOne);
       leftWheelThree.follow(leftWheelOne);
+    //  endgameLiftFollow1.follow(endgameLift);
+    //  endgameLiftFollow2.follow(endgameLift);
+     //Volt = Power.getVoltage(); 
+     
+     
   }
 
   @Override
@@ -137,8 +147,11 @@ public class Robot extends TimedRobot {
 
       case BACK_PISTION_DOWN:
           backpiston.set(true);
-          if(backpiston.get()){
+          pistonTimer.start();
+          compressor.stop();
+          if(pistonTimer.get() >= 1){
             EndgameState = EndgameStates.FOOT_AND_WHEELS;
+            pistonTimer.stop();
           }
       break;
     
@@ -163,7 +176,7 @@ public class Robot extends TimedRobot {
       case STOP_WHEELS:
           leftWheelOne.set(0.0);
           rightWheelOne.set(0.0);
-          if(leftWheelOne.getOutputCurrent() == 0 && rightWheelOne.getOutputCurrent() == 0){
+          if(leftWheelOne.get() == 0 && rightWheelOne.get() == 0){
             EndgameState = EndgameStates.BACKUP_WHEELS;
           }
       break;
@@ -207,6 +220,7 @@ public class Robot extends TimedRobot {
     
     // checks to see if RB is pressed
     // if(stick.getRawButton(6)){
+    /*if(stick.getRawButton(6)){
 
     //   // if the joystick cubed is above the dead band and ticks are not too high
     //   if(leftYStickCubed < -joystickDeadband && ticks < maxTicks){
@@ -245,6 +259,22 @@ public class Robot extends TimedRobot {
     //   }
     // }
 
+        // sets wheels to do nothing
+        wheelOne.set(0.0);
+      }
+    }*/
+    // if(leftYStickCubed < -0.00124){
+    //   endgameLift.set(ControlMode.PercentOutput, -leftYStickCubed);
+    //   //wheelOne.set(0.2);
+    // }
+    // else if(leftYStickCubed > 0.00124){
+    //   endgameLift.set(ControlMode.PercentOutput, -leftYStickCubed);
+    //   //wheelOne.set(-0.2);
+    // }
+    // else{
+    //   endgameLift.set(ControlMode.PercentOutput, 0);
+    //   //wheelOne.set(0.0);
+    // }
     // /*
     // When the A button is pressed (which is 1) and voltage is less then or equal to 30 
     // then set motors to run Otherwise stop running
@@ -299,15 +329,14 @@ public class Robot extends TimedRobot {
     /*
     if (Math.abs(stick.getRawAxis(5)) >= ENDGAME_JOYSTICK_DEADBAND){  // getRawAxis(5) = right joystick
       endgameLift.set(-stick.getRawAxis(5));  // The lift's speed will be set at the right joystick's input value
-    */
-    } 
+    }*/
 
     // If the joystick isn't being touched, don't move
     /*
     else { 
       endgameLift.set(0.0);
     }*/
-  
+  }
 
   @Override
   public void testPeriodic() {
