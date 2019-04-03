@@ -46,6 +46,8 @@ public class Robot extends TimedRobot {
    private static final Timer endgametimer = new Timer();
    private static final Timer backuptimer = new Timer();
    private static final Timer pistonTimer = new Timer();
+
+   private static int ticks = 0;
    
   // private static final CANSparkMax wheelFour = new CANSparkMax(4, MotorType.kBrushless);
   // private static final CANSparkMax wheelFive = new CANSparkMax(5, MotorType.kBrushless);
@@ -142,67 +144,95 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-
-    switch(EndgameState){
-
-      case BACK_PISTION_DOWN:
-          backpiston.set(true);
-          pistonTimer.start();
-          compressor.stop();
-          if(pistonTimer.get() >= 1){
-            EndgameState = EndgameStates.FOOT_AND_WHEELS;
-            pistonTimer.stop();
-          }
-      break;
+    System.out.println(endgamecounter.getRaw());
     
-      case FOOT_AND_WHEELS:
-          rightWheelOne.set(1.0);
-          leftWheelOne.set(1.0);
-          endGameLift.set(1.0);
-          if(endgamecounter.getRaw() >= 3000){
-            EndgameState = EndgameStates.STOP_FOOT;
-          }
+    if(stick.getRawButton(6)){
+      if(Math.abs(stick.getRawAxis(1)) >= 0.5){
+        switch(EndgameState){
+
+          case BACK_PISTION_DOWN:
+            backpiston.set(true);
+            pistonTimer.start();
+            compressor.stop();
+              if(stick.getRawAxis(1) >= 0.5){
+                backpiston.set(false);
+                EndgameState = EndgameStates.BACK_PISTION_DOWN;
+              }
+              if(pistonTimer.get() >= 1){
+                EndgameState = EndgameStates.FOOT_AND_WHEELS;
+                pistonTimer.stop();
+              }
           break;
       
-      case STOP_FOOT:
-          endgametimer.start();
-          endGameLift.set(0.0);
-          if(endgametimer.get() >= 1.0){
-            EndgameState = EndgameStates.STOP_WHEELS;
-            endgametimer.stop();
-          }
-      break;
+          case FOOT_AND_WHEELS:
+            rightWheelOne.set(1.0);
+            leftWheelOne.set(1.0);
+            endGameLift.set(1.0);
+            ticks = endgamecounter.getRaw();
+              if(endgamecounter.getRaw() >= 1500){
+                backpiston.set(false);
+              }
+              if(endgamecounter.getRaw() <= 1500 && stick.getRawAxis(1) >= 0.5 && !(ticks == ticks * 2)){
+                endGameLift.set(-1.0);
+                if(endgamecounter.getRaw() <= 50){
+                  endGameLift.set(0.0);
+                  EndgameState = EndgameStates.BACK_PISTION_DOWN;
+                }
+              }
+              if(endgamecounter.getRaw() >= 3000){
+                EndgameState = EndgameStates.STOP_FOOT;
+              }
+          break;
+        
+          case STOP_FOOT:
+            endgametimer.start();
+            endGameLift.set(0.0);
+              if(endgametimer.get() >= 1.0){
+                EndgameState = EndgameStates.STOP_WHEELS;
+                endgametimer.stop();
+              }
+          break;
 
-      case STOP_WHEELS:
-          leftWheelOne.set(0.0);
-          rightWheelOne.set(0.0);
-          if(leftWheelOne.get() == 0 && rightWheelOne.get() == 0){
-            EndgameState = EndgameStates.BACKUP_WHEELS;
-          }
-      break;
+          case STOP_WHEELS:
+            leftWheelOne.set(0.0);
+            rightWheelOne.set(0.0);
+              if(leftWheelOne.get() == 0 && rightWheelOne.get() == 0){
+                EndgameState = EndgameStates.BACKUP_WHEELS;
+              }
+          break;
 
-      case BACKUP_WHEELS:
-          backuptimer.start();
-          leftWheelOne.set(-0.2);
-          rightWheelOne.set(-0.2);
-          if(backuptimer.get() >= 2.0){
-            backuptimer.stop();
-            EndgameState = EndgameStates.STOP;
-          }
-      break;
+          case BACKUP_WHEELS:
+            backuptimer.start();
+            leftWheelOne.set(-0.2);
+            rightWheelOne.set(-0.2);
+              if(backuptimer.get() >= 2.0){
+                backuptimer.stop();
+                EndgameState = EndgameStates.STOP;
+              }
+          break;
 
-      case STOP:
-        leftWheelOne.set(0.0);
-        rightWheelOne.set(0.0);
-      break;    
+          case STOP:
+            leftWheelOne.set(0.0);
+            rightWheelOne.set(0.0);
+          break;    
+      }
     }
+    else{
+      pistonTimer.stop();
+      endgametimer.stop();
+      backuptimer.stop();
+      endGameLift.set(0.0);
+      rightWheelOne.set(0.0);
+      leftWheelOne.set(0.0);
+    }
+  }
 
 
 
 
     // Cubes the left y joystick
     // -- for smoother motion 
-    leftYStickCubed = Math.pow(stick.getRawAxis(1), 3);
+    //leftYStickCubed = Math.pow(stick.getRawAxis(1), 3);
 
 
     // //if(stick.getRawButton(6)){
