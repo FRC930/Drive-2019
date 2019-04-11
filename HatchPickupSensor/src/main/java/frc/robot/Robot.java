@@ -15,6 +15,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 
 /**
@@ -29,6 +30,7 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class Robot extends TimedRobot {
 
+  Joystick stick = new Joystick(0);
   private static double stickX;
   private static double stickY;
 
@@ -40,6 +42,7 @@ public class Robot extends TimedRobot {
   private static final CANSparkMax right3 = new CANSparkMax(6, MotorType.kBrushless);
 
   private static final Joystick driver = new Joystick(0);
+  private static final Joystick codriver = new Joystick(1);
   Ultrasonic ultra = new Ultrasonic(1,1); // creates the ultra object andassigns ultra to be an ultrasonic sensor which uses DigitalOutput 1 for 
         // the echo pulse and DigitalInput 1 for the trigger pulse
   /**
@@ -117,28 +120,36 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     double range = ultra.getRangeInches(); // reads the range on the ultrasonic sensor
   
-        stickX = driver.getRawAxis(4);
-        stickY = driver.getRawAxis(1);
+    stickX = driver.getRawAxis(4);
+    stickY = driver.getRawAxis(1);
 
-        // Cubing values to create smoother function
-        stickX = -Math.pow(stickX,3);
-        stickY = Math.pow(stickY,3);
-        stickX *= .75;
+    // Cubing values to create smoother function
+    stickX = -Math.pow(stickX,3);
+    stickY = Math.pow(stickY,3);
+    stickX *= .75;
 
-        // Joystick deadband
-        if(Math.abs(stickX) < .000124){
-            stickX = 0;
-        }
-        if(Math.abs(stickY) < .000124){
-            stickY = 0;
-        }
+    // Joystick deadband
+    if(Math.abs(stickX) < .000124){
+        stickX = 0;
+    }
+    if(Math.abs(stickY) < .000124){
+        stickY = 0;
+    }
 
-        
-  
-        
+    //Getting the rangle from unltrasonic sensor and setting a rumble to controller
+    //if(range <= 10 && hatchPiston.get() == Value.kReverse){ //TODO: Add check to make sure hatch manipulator is closed on hatch
+    if(range <= 10 && hatchPiston.get() == Value.kForward /*&& Elevator.atIntakeLvl1Position()*/)
+    {
+      setHatchPiston(true);
+      setRumble(1);
+    }
+    else
+    {
+      setRumble(0);
+    }
 
-        // Arcade drive
-        runAt((stickY + stickX), -(stickY - stickX));
+    // Arcade drive
+    runAt((stickY + stickX), -(stickY - stickX));
   }
 
   public static void runAt(double leftSpeed, double rightSpeed) {
@@ -164,4 +175,11 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
   }
+
+  //method for setting controller viberations(rumbles)
+  public void setRumble(double intensity){
+    stick.setRumble(GenericHID.RumbleType.kLeftRumble, intensity); //Setting left controller viberation
+    stick.setRumble(GenericHID.RumbleType.kRightRumble, intensity); //Setting right controller viberation
+  }
+
 }
